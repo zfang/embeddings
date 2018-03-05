@@ -2,7 +2,7 @@ from embeddings.embedding import Embedding
 import unittest
 import os
 import shutil
-
+import numpy as np
 
 class TestEmbeddings(unittest.TestCase):
 
@@ -10,8 +10,10 @@ class TestEmbeddings(unittest.TestCase):
 
     def setUp(self):
         self.root = os.environ['EMBEDDINGS_ROOT'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_root')
-        if not os.path.isdir(self.root):
-            os.makedirs(self.root)
+        if os.path.isdir(self.root):
+            shutil.rmtree(self.root)
+
+        os.makedirs(self.root)
         self.e = Embedding()
 
     def test_path(self):
@@ -42,8 +44,8 @@ class TestEmbeddings(unittest.TestCase):
         self.assertTrue('world' in self.e)
         self.assertFalse('worlds' in self.e)
         self.assertEqual(3, len(self.e))
-        self.assertListEqual([2, 3, 4], self.e.lookup('world'))
-        
+        self.assertListEqual([2, 3, 4], self.e.lookup('world').tolist())
+
 
 if __name__ == '__main__':
     unittest.main()

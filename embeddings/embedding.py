@@ -2,11 +2,13 @@ import sqlite3
 from os import path, makedirs, environ
 import requests
 import logging
-from array import array
 from io import StringIO
+import numpy as np
 
 
 class Embedding:
+    def __init__(self):
+       self.dtype = np.float32
 
     @staticmethod
     def path(p):
@@ -136,7 +138,7 @@ class Embedding:
             ])
         """
         c = self.db.cursor()
-        binarized = [(word, array('f', emb).tobytes()) for word, emb in batch]
+        binarized = [(word, np.asarray(emb, dtype=self.dtype).tobytes()) for word, emb in batch]
         try:
             c.executemany("insert into embeddings values (?, ?)", binarized)
             self.db.commit()
@@ -166,7 +168,7 @@ class Embedding:
         c.execute('delete from embeddings')
         self.db.commit()
 
-    def lookup(self, w):
+    def lookup(self, w, default=lambda: None):
         """
 
         Args:
@@ -179,4 +181,14 @@ class Embedding:
         """
         c = self.db.cursor()
         q = c.execute('select emb from embeddings where word = :word', {'word': w}).fetchone()
-        return array('f', q[0]).tolist() if q else None
+        return np.frombuffer(q[0], dtype=self.dtype) if q else default()
+
+    def get_random(self, range, d_emb):
+        np.random.uniform(-range, range, dim).astype("float32")
+
+    def get_default(self, range, d_emb):
+        return {
+            'none': lambda: None,
+            'zero': lambda: np.zeros(d_emb, dtype=self.dtype),
+            'random': lambda: self.get_random(range, d_emb),
+            }

@@ -27,9 +27,11 @@ class FastTextEmbedding(Embedding):
             default (str): how to embed words that are out of vocabulary.
 
         Note:
-            Default can use zeros, return ``None``, or generate random between ``[-0.1, 0.1]``.
+            Default can use zeros, return ``None``, or generate random between ``[-0.01, 0.01]``.
         """
         assert default in {'none', 'random', 'zero'}
+
+        super().__init__()
 
         self.lang = lang
         self.db = self.initialize_db(self.path(path.join('fasttext', '{}.db'.format(lang))))
@@ -42,13 +44,7 @@ class FastTextEmbedding(Embedding):
     def emb(self, word, default=None):
         if default is None:
             default = self.default
-        get_default = {
-            'none': lambda: None,
-            'zero': lambda: 0.,
-            'random': lambda: random.uniform(-0.1, 0.1),
-        }[default]
-        g = self.lookup(word)
-        return [get_default() for i in range(self.d_emb)] if g is None else g
+        return self.lookup(word, self.get_default(0.01, self.d_emb)[default])
 
     def load_word2emb(self, show_progress=True, batch_size=1000):
         fin_name = self.ensure_file(path.join('fasttext', '{}.zip'.format(self.lang)), url=self.url.format(self.lang))
@@ -81,5 +77,5 @@ if __name__ == '__main__':
     for w in ['canada', 'vancouver', 'toronto']:
         start = time()
         print('embedding {}'.format(w))
-        # print(emb.emb(w))
+        print(emb.emb(w))
         print('took {}s'.format(time() - start))

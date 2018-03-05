@@ -29,6 +29,8 @@ class KazumaCharEmbedding(Embedding):
 
         """
 
+        super().__init__()
+
         self.db = self.initialize_db(self.path('kazuma.db'))
 
         if len(self) < self.size:
@@ -49,7 +51,7 @@ class KazumaCharEmbedding(Embedding):
                     match[g] = np.array(e, np.float32)
         if match:
             embs = sum(match.values()) / len(match)
-        return embs.tolist()
+        return embs
 
     def load_word2emb(self, show_progress=True, batch_size=1000):
         fin_name = self.ensure_file('kazuma.tar.gz', url=self.url)
@@ -84,5 +86,5 @@ if __name__ == '__main__':
     for w in ['canada', 'vancouver', 'toronto']:
         start = time()
         print('embedding {}'.format(w))
-        # print(emb.emb(w))
+        print(emb.emb(w))
         print('took {}s'.format(time() - start))
