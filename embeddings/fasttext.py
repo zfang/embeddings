@@ -18,33 +18,27 @@ class FastTextEmbedding(Embedding):
     }
     d_emb = 300
 
-    def __init__(self, lang='en', show_progress=True, default='none'):
+    def __init__(self, lang='en', show_progress=True):
         """
 
         Args:
             lang (en): what language to use.
             show_progress (bool): whether to print progress.
-            default (str): how to embed words that are out of vocabulary.
 
         Note:
             Default can use zeros, return ``None``, or generate random between ``[-0.01, 0.01]``.
         """
-        assert default in {'none', 'random', 'zero'}
-
         super().__init__()
 
         self.lang = lang
         self.db = self.initialize_db(self.path(path.join('fasttext', '{}.db'.format(lang))))
-        self.default = default
 
         if len(self) < self.sizes[self.lang]:
             self.clear()
             self.load_word2emb(show_progress=show_progress)
 
-    def emb(self, word, default=None):
-        if default is None:
-            default = self.default
-        return self.lookup(word, self.get_default(0.01, self.d_emb)[default])
+    def emb(self, word, default=lambda: None):
+        return self.lookup(word, default)
 
     def load_word2emb(self, show_progress=True, batch_size=1000):
         fin_name = self.ensure_file(path.join('fasttext', '{}.zip'.format(self.lang)), url=self.url.format(self.lang))

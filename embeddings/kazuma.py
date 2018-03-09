@@ -37,8 +37,7 @@ class KazumaCharEmbedding(Embedding):
             self.clear()
             self.load_word2emb(show_progress=show_progress)
 
-    def emb(self, w, default='zero'):
-        assert default == 'zero', 'only zero default is supported for character embeddings'
+    def emb(self, w):
         chars = ['#BEGIN#'] + list(w) + ['#END#']
         embs = np.zeros(self.d_emb, dtype=np.float32)
         match = {}

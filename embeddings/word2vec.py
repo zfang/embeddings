@@ -18,17 +18,15 @@ class Word2VecEmbedding(Embedding):
                                         'bin.gz', 300, 3000000, '3 million words and phrases'),
     }
 
-    def __init__(self, name='google_news', show_progress=True, default='none'):
+    def __init__(self, name='google_news', show_progress=True):
         """
 
         Args:
             name: name of the embedding to retrieve.
             show_progress: whether to print progress.
-            default: how to embed words that are out of vocabulary. Can use zeros, return ``None``, or generate random between ``[-0.01, 0.01]``.
         """
         assert name in self.settings, '{} is not a valid corpus. Valid options: {}'.format(name, self.settings)
         self.setting = self.settings[name]
-        assert default in {'none', 'random', 'zero'}
 
         super().__init__()
 
@@ -36,16 +34,13 @@ class Word2VecEmbedding(Embedding):
         self.d_emb = self.setting.d_emb
         self.name = name
         self.db = self.initialize_db(self.path(path.join('word2vec', '{}:{}.db'.format(name, self.d_emb))))
-        self.default = default
 
         if len(self) < self.setting.size:
             self.clear()
             self.load_word2emb(show_progress=show_progress)
 
-    def emb(self, word, default=None):
-        if default is None:
-            default = self.default
-        return self.lookup(word, self.get_default(0.01, self.d_emb)[default])
+    def emb(self, word, default=lambda: None):
+        return self.lookup(word, default)
 
     def load_word2emb(self, show_progress=True, batch_size=1000):
         fin_name = self.ensure_file(path.join('word2vec', '{}.{}'.format(self.name, self.extension)), url=self.setting.url)

@@ -24,35 +24,30 @@ class GloveEmbedding(Embedding):
                                            [50, 100, 200, 300], 400000, '6B token wikipedia 2014 + gigaword 5'),
     }
 
-    def __init__(self, name='common_crawl_840', d_emb=300, show_progress=True, default='none'):
+    def __init__(self, name='common_crawl_840', d_emb=300, show_progress=True):
         """
 
         Args:
             name: name of the embedding to retrieve.
             d_emb: embedding dimensions.
             show_progress: whether to print progress.
-            default: how to embed words that are out of vocabulary. Can use zeros, return ``None``, or generate random between ``[-0.01, 0.01]``.
         """
         assert name in self.settings, '{} is not a valid corpus. Valid options: {}'.format(name, self.settings)
         self.setting = self.settings[name]
         assert d_emb in self.setting.d_embs, '{} is not a valid dimension for {}. Valid options: {}'.format(d_emb, name, self.setting)
-        assert default in {'none', 'random', 'zero'}
 
         super().__init__()
 
         self.d_emb = d_emb
         self.name = name
         self.db = self.initialize_db(self.path(path.join('glove', '{}:{}.db'.format(name, d_emb))))
-        self.default = default
 
         if len(self) < self.setting.size:
             self.clear()
             self.load_word2emb(show_progress=show_progress)
 
-    def emb(self, word, default=None):
-        if default is None:
-            default = self.default
-        return self.lookup(word, self.get_default(0.01, self.d_emb)[default])
+    def emb(self, word, default=lambda: None):
+        return self.lookup(word, default)
 
     def load_word2emb(self, show_progress=True, batch_size=1000):
         fin_name = self.ensure_file(path.join('glove', '{}.zip'.format(self.name)), url=self.setting.url)

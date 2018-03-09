@@ -182,13 +182,3 @@ class Embedding:
         c = self.db.cursor()
         q = c.execute('select emb from embeddings where word = :word', {'word': w}).fetchone()
         return np.frombuffer(q[0], dtype=self.dtype) if q else default()
-
-    def get_random(self, range, d_emb):
-        np.random.uniform(-range, range, dim).astype("float32")
-
-    def get_default(self, range, d_emb):
-        return {
-            'none': lambda: None,
-            'zero': lambda: np.zeros(d_emb, dtype=self.dtype),
-            'random': lambda: self.get_random(range, d_emb),
-            }
